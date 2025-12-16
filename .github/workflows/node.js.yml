@@ -15,17 +15,30 @@ jobs:
 
       - name: Copy files to app directory
         run: |
-          rsync -av --delete ./ /home/ubuntu/app/
+          # Create app directory if it doesn't exist
+          mkdir -p /home/ubuntu/app
+          # Copy backend files to app directory
+          rsync -av --delete ./backend/ /home/ubuntu/app/
+          # Also copy root level files if any
+          if [ -f "./package.json" ]; then
+            cp ./package.json /home/ubuntu/app/ 2>/dev/null || true
+          fi
 
       - name: Install dependencies
         run: |
           cd /home/ubuntu/app
-          npm ci  # faster, clean install for CI/CD
+          # Remove old node_modules if exists
+          rm -rf node_modules package-lock.json
+          # Install dependencies
+          npm install
 
       - name: PM2 restart
         run: |
           cd /home/ubuntu/app
-          # Try to start PM2 app; if already running, reload
-          pm2 start ecosystem.config.js --env production || pm2 reload backend
+          # Stop and delete existing process
+          pm2 stop unified-backend || true
+          pm2 delete unified-backend || true
+          # Start with ecosystem.config.js
+          pm2 start ecosystem.config.js --env production
           pm2 save
-          pm2 status  # optional: log status to confirm
+          pm2 status

@@ -3,11 +3,12 @@ module.exports = {
   apps: [{
     name: 'unified-backend',
     script: './server.js',
+    cwd: '/home/ubuntu/app',
     instances: 1,
     exec_mode: 'fork',
     env: {
       NODE_ENV: 'production',
-      PORT: 5000
+      PORT: 3004
     },
     error_file: './logs/err.log',
     out_file: './logs/out.log',
