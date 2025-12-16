@@ -1,0 +1,46 @@
+{
+  "name": "unified-backend",
+  "version": "1.0.0",
+  "description": "Unified backend for Repair and Store systems",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "production": "NODE_ENV=production node server.js",
+    "build:frontend": "cd ../frontend && npm install && npm run build && cd ../backend && mkdir -p public && rm -rf public/* && cp -r ../frontend/dist/* public/",
+    "build:all": "npm run build:frontend && echo '✅ Frontend built and copied to backend/public'"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.927.0",
+    "@aws-sdk/lib-storage": "^3.927.0",
+    "@aws-sdk/s3-request-presigner": "^3.927.0",
+    "@supabase/supabase-js": "^2.78.0",
+    "bcrypt": "^6.0.0",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "exceljs": "^4.4.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "multer-s3": "^3.0.1",
+    "oracledb": "^6.9.0",
+    "pg": "^8.16.3",
+    "redis": "^5.9.0",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
+
+
+
+
+
+
+
+
