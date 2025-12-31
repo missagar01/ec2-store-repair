@@ -33,6 +33,41 @@ function buildPoFilename(type) {
   return buildDownloadFilename(`po-${type}`);
 }
 
+function formatDate(dateString) {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+  } catch (err) {
+    return "";
+  }
+}
+
+function formatDateTime(dateString) {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+    
+    return `${day}/${month}/${year}, ${hours}:${minutes}:${seconds}`;
+  } catch (err) {
+    return "";
+  }
+}
+
 function annotatePoRows(rows = []) {
   return rows.map((row, index) => {
     const orderQty = Number(row.QTYORDER ?? row.qtyorder ?? 0);
@@ -51,11 +86,19 @@ function annotatePoRows(rows = []) {
       row.INDENTER ??
       "";
 
+    // Format dates to match frontend display format
+    const plannedTimestamp = formatDateTime(
+      row.PLANNED_TIMESTAMP ?? row.planned_timestamp ?? row.PLANNEDTIMESTAMP
+    );
+    const poDate = formatDate(row.VRDATE ?? row.vrdate ?? row.VR_DATE);
+
     return {
       ...row,
       S_NO: index + 1,
       BALANCE_QTY: balance,
       INDENTER: indenter,
+      PLANNED_TIMESTAMP: plannedTimestamp,
+      VRDATE: poDate,
     };
   });
 }

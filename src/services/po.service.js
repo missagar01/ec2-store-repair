@@ -15,7 +15,7 @@ export async function getPoPending() {
       try {
         const sql = `
           SELECT 
-        t.duedate + INTERVAL '20' HOUR AS PLANNED_TIMESTAMP,
+        t.duedate + NUMTODSINTERVAL(20,'HOUR') AS PLANNED_TIMESTAMP,
         NVL(a.indent_remark, '') AS INDENTER,
         NVL(a.vrno, '') AS INDENT_NO,
         t.vrno AS VRNO,
@@ -24,8 +24,8 @@ export async function getPoPending() {
         t.item_name AS ITEM_NAME,
         t.qtyorder AS QTYORDER,
         t.um AS UM,
-        t.qtyexecute AS QTYEXECUTE,
-        (t.qtyorder - t.qtyexecute) AS BALANCE_QTY
+        NVL(t.qtyexecute, 0) AS QTYEXECUTE,
+        (NVL(t.qtyorder, 0) - NVL(t.qtyexecute, 0)) AS BALANCE_QTY
       FROM view_order_engine t
       LEFT JOIN (
         SELECT DISTINCT vrno, indent_remark 
@@ -33,10 +33,9 @@ export async function getPoPending() {
       ) a ON a.vrno = t.indent_vrno
       WHERE t.entity_code = 'SR'
         AND t.series = 'U3'
-        AND t.qtycancelled IS NULL
-        AND (t.qtyorder - t.qtyexecute) > 0
-        AND t.vrdate >= '01-apr-2025'
-      ORDER BY t.vrdate DESC, t.vrno DESC
+        AND NVL(t.qtycancelled, 0) = 0
+        AND NVL(t.qtyexecute, 0) < NVL(t.qtyorder, 0)
+      ORDER BY t.vrdate ASC, t.vrno ASC
         `;
 
         const result = await conn.execute(sql, [], {
