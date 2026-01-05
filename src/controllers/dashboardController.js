@@ -34,10 +34,10 @@ export const getDashboardMetrics = async (req, res) => {
   } catch (error) {
     console.error("Dashboard Error:", error);
     console.error("Error details:", error.message);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: error.message || "Internal Server Error",
-      details: error.message 
+      details: error.message
     });
   }
 };

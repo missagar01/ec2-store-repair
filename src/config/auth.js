@@ -28,7 +28,7 @@ if (hasPostgresConfig) {
     console.error('Unexpected error on idle PostgreSQL client', err);
     // Don't exit - graceful degradation
   });
-  
+
   console.log('✅ PostgreSQL auth pool initialized');
 } else {
   console.warn('⚠️ PostgreSQL auth not configured - login will not work');

@@ -11,20 +11,20 @@ const __dirname = dirname(__filename);
 async function runMigration() {
   const pool = getPgPool();
   const client = await pool.connect();
-  
+
   try {
     console.log('🔄 Running migration: create_indent_table.sql');
-    
+
     const sqlFile = join(__dirname, 'create_indent_table.sql');
     const sql = readFileSync(sqlFile, 'utf8');
-    
+
     await client.query('BEGIN');
     await client.query(sql);
     await client.query('COMMIT');
-    
+
     console.log('✅ Migration completed successfully!');
     console.log('✅ indent table created in PostgreSQL');
-    
+
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('❌ Migration failed:', error.message);

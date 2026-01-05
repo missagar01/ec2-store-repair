@@ -37,7 +37,7 @@ const frontendBuildPath = path.join(__dirname, "public");
 if (fs.existsSync(frontendBuildPath)) {
   // Serve static files
   app.use(express.static(frontendBuildPath));
-  
+
   // Serve index.html for all non-API routes (SPA routing)
   app.get("*", (req, res) => {
     // Don't serve index.html for API routes
@@ -52,8 +52,8 @@ if (fs.existsSync(frontendBuildPath)) {
 } else {
   // Development mode - API health check
   app.get("/", (req, res) => {
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: "Unified Backend API is running 🚀",
       version: "1.0.0",
       note: "Frontend build not found. Run 'npm run build:all' to build frontend."

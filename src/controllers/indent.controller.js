@@ -97,7 +97,7 @@ export async function listAllIndents(req, res) {
   try {
     // Fetch all indents from PostgreSQL (AWS RDS)
     const { rows } = await fetchIndents({});
-    
+
     return res.json({
       success: true,
       total: rows.length,

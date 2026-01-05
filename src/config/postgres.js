@@ -21,8 +21,8 @@ function buildPoolConfig() {
     database: resolveEnv("DB_NAME", "PG_NAME", "PG_DATABASE"),
     ssl: sslEnabled
       ? {
-          rejectUnauthorized: false,
-        }
+        rejectUnauthorized: false,
+      }
       : false,
     max: Number(process.env.PG_POOL_MAX) || 10,
     idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MS) || 30000,

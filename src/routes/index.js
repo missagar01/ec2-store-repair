@@ -17,6 +17,7 @@ import repairGatePassRoutes from "./repairGatePass.routes.js";
 // Repair/PostgreSQL routes (require PG connection)
 import indentRoutes from "./indent.routes.js";
 import dashboardRoutes from "./dashboardRoutes.js";
+import repairFollowupRoutes from "./repairFollowup.routes.js";
 
 const router = Router();
 
@@ -37,6 +38,7 @@ router.use("/repair-gate-pass", repairGatePassRoutes);
 // Repair/PostgreSQL routes (require PG connection)
 router.use("/indent", indentRoutes);
 router.use("/dashboard", dashboardRoutes);
+router.use("/repair-followup", repairFollowupRoutes);
 
 export default router;
 

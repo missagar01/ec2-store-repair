@@ -15,10 +15,10 @@ export async function loginUser(user_name, employee_id, password) {
   console.time('[auth.service.js] Total Login Time');
   try {
     console.log(`[auth.service.js] Attempting login for user_name: ${user_name}, employee_id: ${employee_id}`);
-    
+
     // Create cache key for user lookup
     const cacheKey = `auth:user:${user_name || ''}:${employee_id || ''}`;
-    
+
     // Try to get user from cache first (fast!)
     const cachedUser = await getOrSetCache(
       cacheKey,
@@ -58,7 +58,7 @@ export async function loginUser(user_name, employee_id, password) {
           const result = await client.query(queryText, queryParams);
           console.timeEnd('[auth.service.js] Execute DB Query');
           console.log('[auth.service.js] Query result rows:', result.rows);
-          
+
           if (result.rows.length === 0) {
             return null; // User not found
           }

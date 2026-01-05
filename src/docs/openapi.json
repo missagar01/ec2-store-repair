@@ -6,8 +6,14 @@
     "description": "API documentation for authentication and related endpoints"
   },
   "servers": [
-    { "url": "http://localhost:3002", "description": "Local 3002" },
-    { "url": "http://localhost:3004", "description": "Local 3004" }
+    {
+      "url": "http://localhost:3002",
+      "description": "Local 3002"
+    },
+    {
+      "url": "http://localhost:3004",
+      "description": "Local 3004"
+    }
   ],
   "paths": {
     "/auth/login": {
@@ -21,23 +27,47 @@
                 "type": "object",
                 "description": "Requires 'password' and either 'user_name' or 'employee_id'.",
                 "properties": {
-                  "user_name": { "type": "string" },
-                  "employee_id": { "type": "string" },
-                  "password": { "type": "string" }
+                  "user_name": {
+                    "type": "string"
+                  },
+                  "employee_id": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
                 },
-                "required": ["password"],
+                "required": [
+                  "password"
+                ],
                 "oneOf": [
-                  { "required": ["user_name"] },
-                  { "required": ["employee_id"] }
+                  {
+                    "required": [
+                      "user_name"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "employee_id"
+                    ]
+                  }
                 ]
               },
-              "example": { "user_name": "admin", "employee_id": "EMP001", "password": "admin1234" }
+              "example": {
+                "user_name": "admin",
+                "employee_id": "EMP001",
+                "password": "admin1234"
+              }
             }
           }
         },
         "responses": {
-          "200": { "description": "Successful login with JWT" },
-          "401": { "description": "Invalid credentials" }
+          "200": {
+            "description": "Successful login with JWT"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
         }
       }
     }

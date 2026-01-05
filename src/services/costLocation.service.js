@@ -24,7 +24,7 @@ export async function getCostLocationsService(divCode = null) {
               AND (t.DIV_CODE IS NULL OR t.DIV_CODE = :divCode)
             ORDER BY t.COST_NAME
           `;
-          
+
           const binds = { divCode: divisionCode };
 
           const result = await conn.execute(sql, binds, {
@@ -62,7 +62,7 @@ export async function getCostLocationsService(divCode = null) {
 export async function getCostLocationsRP() {
   try {
     const cacheKey = "costlocation:RP";
-    
+
     const result = await getOrSetCache(
       cacheKey,
       async () => {
@@ -111,7 +111,7 @@ export async function getCostLocationsRP() {
 export async function getCostLocationsPM() {
   try {
     const cacheKey = "costlocation:PM";
-    
+
     const result = await getOrSetCache(
       cacheKey,
       async () => {
@@ -160,7 +160,7 @@ export async function getCostLocationsPM() {
 export async function getCostLocationsCO() {
   try {
     const cacheKey = "costlocation:CO";
-    
+
     const result = await getOrSetCache(
       cacheKey,
       async () => {
