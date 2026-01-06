@@ -60,3 +60,29 @@ export async function remove(req, res) {
         res.status(500).json({ success: false, message: "Delete failed" });
     }
 }
+
+
+export async function updateStage2(req, res) {
+    try {
+        const data = await service.updateStage2ById(
+            req.params.id,
+            req.body
+        );
+
+        if (!data) {
+            return res.status(404).json({
+                success: false,
+                message: "Record not found",
+            });
+        }
+
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error("Stage2 update error:", err);
+        res.status(500).json({
+            success: false,
+            message: "Stage2 update failed",
+        });
+    }
+}
+

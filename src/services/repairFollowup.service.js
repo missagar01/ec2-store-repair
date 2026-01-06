@@ -2,15 +2,17 @@ import { getPgPool } from "../config/postgres.js";
 
 const pool = getPgPool();
 
-/* =========================
-   CREATE
-========================= */
-
 function differenceInDays(actual, planned) {
     const actualDate = new Date(actual);
     const plannedDate = new Date(planned);
     const diffTime = actualDate - plannedDate;
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+function todayISTDateOnly() {
+    return new Date().toLocaleDateString("en-CA", {
+        timeZone: "Asia/Kolkata",
+    });
 }
 
 
@@ -80,9 +82,6 @@ export async function createRepairFollowup(data) {
     return rows[0];
 }
 
-/* =========================
-   READ ALL
-========================= */
 export async function getAllRepairFollowups() {
     const { rows } = await pool.query(
         `SELECT * FROM repair_followup ORDER BY created_at DESC`
@@ -90,9 +89,6 @@ export async function getAllRepairFollowups() {
     return rows;
 }
 
-/* =========================
-   READ BY ID
-========================= */
 export async function getRepairFollowupById(id) {
     const { rows } = await pool.query(
         `SELECT * FROM repair_followup WHERE id = $1`,
@@ -101,9 +97,6 @@ export async function getRepairFollowupById(id) {
     return rows[0];
 }
 
-/* =========================
-   UPDATE
-========================= */
 export async function updateRepairFollowup(id, data) {
     const time_delay1 =
         data.actual1 && data.planned1
@@ -168,10 +161,53 @@ export async function updateRepairFollowup(id, data) {
     return rows[0];
 }
 
-/* =========================
-   DELETE
-========================= */
 export async function deleteRepairFollowup(id) {
     await pool.query(`DELETE FROM repair_followup WHERE id = $1`, [id]);
     return true;
 }
+
+export async function updateStage2ById(id, data) {
+    const isCompleted =
+        typeof data.gate_pass_status === "string" &&
+        data.gate_pass_status.toLowerCase() === "completed";
+
+    let actual2 = null;
+    let time_delay2 = null;
+
+    // 🔥 ONLY SET actual2 IF COMPLETED
+    if (isCompleted) {
+        actual2 = todayISTDateOnly();
+
+        if (data.planned2) {
+            time_delay2 = Math.max(
+                0,
+                differenceInDays(actual2, data.planned2)
+            );
+        }
+    }
+
+    const query = `
+        UPDATE repair_followup
+        SET
+            stage2_status = $1,
+            gate_pass_status = $2,
+            actual2 = COALESCE($3, actual2),
+            time_delay2 = COALESCE($4, time_delay2),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $5
+        RETURNING *;
+    `;
+
+    const values = [
+        data.stage2_status ?? null,
+        data.gate_pass_status ?? null,
+        actual2,        // NULL if not completed
+        time_delay2,    // NULL if not completed
+        id,
+    ];
+
+    const { rows } = await pool.query(query, values);
+    return rows[0];
+}
+
+
