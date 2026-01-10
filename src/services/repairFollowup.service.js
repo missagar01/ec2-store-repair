@@ -167,6 +167,29 @@ export async function deleteRepairFollowup(id) {
 }
 
 export async function updateStage2ById(id, data) {
+
+    if (data.extended_date) {
+        const query = `
+        UPDATE repair_followup
+        SET
+            stage2_status = $1,
+            extended_date = $2,
+            gate_pass_status = $3,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $4
+        RETURNING *;
+    `;
+
+        const { rows } = await pool.query(query, [
+            data.stage2_status ?? null,
+            data.extended_date,
+            data.gate_pass_status,
+            id,
+        ]);
+
+        return rows[0];
+    }
+
     const isCompleted =
         typeof data.gate_pass_status === "string" &&
         data.gate_pass_status.toLowerCase() === "completed";
@@ -174,7 +197,6 @@ export async function updateStage2ById(id, data) {
     let actual2 = null;
     let time_delay2 = null;
 
-    // 🔥 ONLY SET actual2 IF COMPLETED
     if (isCompleted) {
         actual2 = todayISTDateOnly();
 
@@ -201,13 +223,14 @@ export async function updateStage2ById(id, data) {
     const values = [
         data.stage2_status ?? null,
         data.gate_pass_status ?? null,
-        actual2,        // NULL if not completed
-        time_delay2,    // NULL if not completed
+        actual2,
+        time_delay2,
         id,
     ];
 
     const { rows } = await pool.query(query, values);
     return rows[0];
 }
+
 
 
