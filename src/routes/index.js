@@ -18,6 +18,7 @@ import repairGatePassRoutes from "./repairGatePass.routes.js";
 import indentRoutes from "./indent.routes.js";
 import dashboardRoutes from "./dashboardRoutes.js";
 import repairFollowupRoutes from "./repairFollowup.routes.js";
+import settingsRoutes from "./settings.routes.js";
 
 const router = Router();
 
@@ -39,6 +40,7 @@ router.use("/repair-gate-pass", repairGatePassRoutes);
 router.use("/indent", indentRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/repair-followup", repairFollowupRoutes);
+router.use("/settings", settingsRoutes);
 
 export default router;
 

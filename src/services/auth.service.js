@@ -33,7 +33,7 @@ export async function loginUser(user_name, employee_id, password) {
           // IMPORTANT: The SQL query should find the user by identifier first,
           // then the password comparison happens in JavaScript.
           let queryText = `
-            SELECT id, user_name, employee_id, password, role, user_access, department
+            SELECT id, user_name, employee_id, password, role, user_access, department , store_access
             FROM users
             WHERE 1=1 -- Always true, makes appending AND clauses easier
           `;
@@ -112,6 +112,7 @@ export async function loginUser(user_name, employee_id, password) {
         role: user.role,
         user_access: user.user_access || user.department || null,
         department: user.department || user.user_access || null,
+        store_access: user.store_access || null,
       },
     };
   } catch (error) {
