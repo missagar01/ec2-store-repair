@@ -43,7 +43,7 @@ export async function getPoPending() {
         });
 
         const rows = result.rows || [];
-        
+
         // Debug logging - check first row
         if (rows.length > 0) {
           const firstRow = rows[0];
@@ -51,7 +51,7 @@ export async function getPoPending() {
           console.log("🔍 PO Pending - INDENT_NO:", firstRow.INDENT_NO);
           console.log("🔍 PO Pending - INDENTER:", firstRow.INDENTER);
         }
-        
+
         return {
           rows,
           total: rows.length,
@@ -107,7 +107,7 @@ export async function getPoHistory() {
         });
 
         const rows = result.rows || [];
-        
+
         // Debug logging - check first row
         if (rows.length > 0) {
           const firstRow = rows[0];
@@ -115,7 +115,7 @@ export async function getPoHistory() {
           console.log("🔍 PO History - INDENT_NO:", firstRow.INDENT_NO);
           console.log("🔍 PO History - INDENTER:", firstRow.INDENTER);
         }
-        
+
         return {
           rows,
           total: rows.length,

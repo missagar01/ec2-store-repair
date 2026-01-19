@@ -19,6 +19,7 @@ import indentRoutes from "./indent.routes.js";
 import dashboardRoutes from "./dashboardRoutes.js";
 import repairFollowupRoutes from "./repairFollowup.routes.js";
 import settingsRoutes from "./settings.routes.js";
+import storeGRNRoutes from "./storeGRN.routes.js";
 
 const router = Router();
 
@@ -41,6 +42,7 @@ router.use("/indent", indentRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/repair-followup", repairFollowupRoutes);
 router.use("/settings", settingsRoutes);
+router.use("/store-grn", storeGRNRoutes);
 
 export default router;
 
