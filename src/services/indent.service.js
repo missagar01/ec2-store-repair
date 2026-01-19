@@ -498,3 +498,45 @@ export async function fetchIndentByRequestNumber(requestNumber) {
     return rows;
   });
 }
+
+
+export async function updateIndentNumberService(requestNumber, indentNumber) {
+  if (!requestNumber) {
+    throw new Error("requestNumber is required");
+  }
+
+  if (!indentNumber) {
+    throw new Error("indent_number is required");
+  }
+
+  return withPgTransaction(async (client) => {
+    // Ensure indent exists
+    const { rows: existingRows } = await client.query(
+      `
+        SELECT id
+        FROM indent
+        WHERE request_number = $1
+        LIMIT 1
+      `,
+      [requestNumber]
+    );
+
+    if (!existingRows.length) {
+      throw new Error(`Indent with request_number ${requestNumber} not found`);
+    }
+
+    // Update only indent_number
+    const { rows } = await client.query(
+      `
+        UPDATE indent
+        SET indent_number = $1,
+            updated_at = NOW()
+        WHERE request_number = $2
+        RETURNING *
+      `,
+      [indentNumber, requestNumber]
+    );
+
+    return rows;
+  });
+}

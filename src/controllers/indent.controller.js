@@ -4,6 +4,7 @@ import {
   updateIndentStatusBulk,
   fetchIndents,
   fetchIndentByRequestNumber,
+  updateIndentNumberService,
 } from "../services/indent.service.js";
 
 function pickStatusCode(err, notFoundStatus = 404) {
@@ -191,3 +192,36 @@ export async function listIndentsByStatus(req, res) {
     });
   }
 }
+
+export async function updateIndentNumber(req, res) {
+  const requestNumber = req.params.requestNumber;
+
+  try {
+    const { indent_number } = req.body;
+
+    if (!indent_number || typeof indent_number !== "string") {
+      return res.status(400).json({
+        success: false,
+        error: "indent_number is required and must be a string",
+      });
+    }
+
+    const record = await updateIndentNumberService(
+      requestNumber,
+      indent_number.trim()
+    );
+
+    return res.json({
+      success: true,
+      data: record,
+    });
+  } catch (err) {
+    console.error("updateIndentNumber error:", err);
+    const status = err.message?.toLowerCase().includes("not found") ? 404 : 400;
+    return res.status(status).json({
+      success: false,
+      error: err.message || "Failed to update indent_number",
+    });
+  }
+}
+

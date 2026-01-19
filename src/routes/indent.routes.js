@@ -6,7 +6,8 @@ import {
   listAllIndents,
   getIndent,
   filterIndents,
-  listIndentsByStatus, // Import the new combined function
+  listIndentsByStatus,
+  updateIndentNumber,
 } from "../controllers/indent.controller.js";
 
 const router = Router();
@@ -19,5 +20,6 @@ router.post("/", submitIndent);
 // PUT route must come before GET /:requestNumber to avoid route conflicts
 router.put("/:requestNumber/status", updateIndentDecision);
 router.get("/:requestNumber", getIndent);
+router.patch("/:requestNumber/indent-number", updateIndentNumber);
 
 export default router;
