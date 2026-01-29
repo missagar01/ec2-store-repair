@@ -51,28 +51,6 @@ export async function sendBill(req, res) {
 
 
 /* =========================
-   PATCH: ADMIN APPROVAL
-========================= */
-export async function approveByAdmin(req, res) {
-    try {
-        const { grnNo } = req.params;
-        const updated = await service.patchApprovedByAdmin(grnNo);
-
-        return res.json({
-            success: true,
-            message: "Approved by admin",
-            data: updated,
-        });
-    } catch (err) {
-        console.error("approveByAdmin error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Admin approval failed",
-        });
-    }
-}
-
-/* =========================
    PATCH: GM APPROVAL
 ========================= */
 export async function approveByGM(req, res) {

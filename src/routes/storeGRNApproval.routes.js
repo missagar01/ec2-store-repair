@@ -2,7 +2,6 @@ import { Router } from "express";
 import {
     getAllStoreGRN,
     sendBill,
-    approveByAdmin,
     approveByGM,
     closeBill,
 } from "../controllers/storeGRNApproval.controller.js";
@@ -17,7 +16,7 @@ const router = Router();
 router.get("/", getAllStoreGRN);
 
 router.post("/send-bill", sendBill);
-router.patch("/approve-admin/:grnNo", approveByAdmin);
+// router.patch("/approve-admin/:grnNo", approveByAdmin);
 router.patch("/approve-gm/:grnNo", approveByGM);
 router.patch("/close-bill/:grnNo", closeBill);
 
