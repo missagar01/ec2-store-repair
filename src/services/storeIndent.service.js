@@ -78,7 +78,7 @@ export async function getPending() {
             lhs_utility.get_name('cost_code', t.cost_code) AS cost_project
           FROM view_indent_engine t
           WHERE ${baseWhere}
-          ORDER BY t.vrdate ASC, t.vrno ASC
+          ORDER BY t.vrdate DESC, t.vrno DESC
         `;
 
         const result = await conn.execute(sql, [], {
@@ -104,33 +104,44 @@ export async function getHistory() {
     async () => {
       const conn = await getConnection();
       try {
-        const baseWhere = `
-          t.entity_code = 'SR'
-          AND t.po_no IS NOT NULL
-          AND t.vrdate >= DATE '2025-04-01'
-        `;
-
         const sql = `
-          SELECT
-            t.lastupdate + INTERVAL '3' DAY AS plannedtimestamp,
-            t.vrno AS indent_number,
-            t.vrdate AS indent_date,
-            t.indent_remark AS indenter_name,
-            lhs_utility.get_name('div_code', t.div_code) AS division,
-            lhs_utility.get_name('dept_code', t.dept_code) AS department,
-            UPPER(t.item_name) AS item_name,
-            t.um,
-            t.qtyindent AS required_qty,
-            t.purpose_remark AS remark,
-            UPPER(t.remark) AS specification,
-            lhs_utility.get_name('cost_code', t.cost_code) AS cost_project,
-            t.po_no,
-            t.po_qty,
-            t.cancelleddate,
-            t.cancelled_remark
-          FROM view_indent_engine t
-          WHERE ${baseWhere}
-          ORDER BY t.vrdate ASC, t.vrno ASC
+        SELECT  t.vrno AS indent_no,
+                t.vrdate AS indent_date,
+                t.indent_remark AS indenter,
+                lhs_utility.get_name('div_code',  t.div_code)  AS division,
+                lhs_utility.get_name('dept_code', t.dept_code) AS department,
+                t.item_code,
+                t.item_name,
+                t.qtyindent,
+                t.um,
+                t.acknowledgedate,
+                lhs_utility.get_name('user_code', t.acknowledgeby) AS purchaser,
+
+                -- PO numbers (comma separated)
+                ( SELECT LISTAGG(a.vrno, ', ') WITHIN GROUP (ORDER BY a.vrno)
+                  FROM view_order_engine a
+                  WHERE a.indent_vrno = t.vrno
+                    AND a.item_code   = t.item_code
+                ) AS po_number,
+
+                -- GRN numbers (comma separated)
+                ( SELECT LISTAGG(b.vrno, ', ') WITHIN GROUP (ORDER BY b.vrno)
+                  FROM view_itemtran_engine b
+                  WHERE b.indent_vrno = t.vrno
+                    AND b.item_code   = t.item_code
+                ) AS grn_no,
+
+                -- GRN dates (comma separated)
+                ( SELECT LISTAGG(TO_CHAR(b.vrdate, 'DD-MON-YYYY'), ', ')
+                         WITHIN GROUP (ORDER BY b.vrdate)
+                  FROM view_itemtran_engine b
+                  WHERE b.indent_vrno = t.vrno
+                    AND b.item_code   = t.item_code
+                ) AS grn_date
+
+        FROM view_indent_engine t
+        WHERE t.entity_code = 'SR'
+        ORDER BY t.vrdate DESC, t.vrno DESC
         `;
 
         const result = await conn.execute(sql, [], {
@@ -151,10 +162,10 @@ export async function getDashboardMetrics() {
     cacheKeys.indentDashboard(),
     async () => {
       const conn = await getConnection();
-  try {
-    // Get status-based metrics (like housekeeping dashboard)
-    const statusMetrics = await conn.execute(
-      `
+      try {
+        // Get status-based metrics (like housekeeping dashboard)
+        const statusMetrics = await conn.execute(
+          `
       SELECT
         COUNT(*) AS total_indents,
         COUNT(CASE WHEN t.po_no IS NOT NULL THEN 1 END) AS completed_indents,
@@ -165,74 +176,74 @@ export async function getDashboardMetrics() {
       FROM view_indent_engine t
       WHERE ${DASHBOARD_INDENT_WHERE}
       `,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
+          [],
+          { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
 
-    const statusData = statusMetrics.rows?.[0] || {};
-    const totalIndents = toNumber(statusData.TOTAL_INDENTS);
-    const completedIndents = toNumber(statusData.COMPLETED_INDENTS);
-    const pendingIndents = toNumber(statusData.PENDING_INDENTS);
-    const upcomingIndents = toNumber(statusData.UPCOMING_INDENTS);
-    const overdueIndents = toNumber(statusData.OVERDUE_INDENTS);
+        const statusData = statusMetrics.rows?.[0] || {};
+        const totalIndents = toNumber(statusData.TOTAL_INDENTS);
+        const completedIndents = toNumber(statusData.COMPLETED_INDENTS);
+        const pendingIndents = toNumber(statusData.PENDING_INDENTS);
+        const upcomingIndents = toNumber(statusData.UPCOMING_INDENTS);
+        const overdueIndents = toNumber(statusData.OVERDUE_INDENTS);
 
-    // Calculate overall progress percentages
-    const overallProgress = totalIndents > 0 ? (completedIndents / totalIndents) * 100 : 0;
-    const completedPercent = totalIndents > 0 ? (completedIndents / totalIndents) * 100 : 0;
-    const pendingPercent = totalIndents > 0 ? (pendingIndents / totalIndents) * 100 : 0;
-    const upcomingPercent = totalIndents > 0 ? (upcomingIndents / totalIndents) * 100 : 0;
-    const overduePercent = totalIndents > 0 ? (overdueIndents / totalIndents) * 100 : 0;
-    
-    // Reuse statusMetrics for total_indented_qty, no need for separate query
+        // Calculate overall progress percentages
+        const overallProgress = totalIndents > 0 ? (completedIndents / totalIndents) * 100 : 0;
+        const completedPercent = totalIndents > 0 ? (completedIndents / totalIndents) * 100 : 0;
+        const pendingPercent = totalIndents > 0 ? (pendingIndents / totalIndents) * 100 : 0;
+        const upcomingPercent = totalIndents > 0 ? (upcomingIndents / totalIndents) * 100 : 0;
+        const overduePercent = totalIndents > 0 ? (overdueIndents / totalIndents) * 100 : 0;
 
-    const purchaseSummary = await conn.execute(
-      `
+        // Reuse statusMetrics for total_indented_qty, no need for separate query
+
+        const purchaseSummary = await conn.execute(
+          `
       SELECT
         COUNT(*) AS total_purchase_orders,
         NVL(SUM(NVL(t.qtyorder, 0)), 0) AS total_purchased_qty
       FROM view_order_engine t
       WHERE ${DASHBOARD_PURCHASE_WHERE}
     `,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
+          [],
+          { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
 
-    let issuedTotal = 0;
-    try {
-      const issuedResult = await conn.execute(
-        `
+        let issuedTotal = 0;
+        try {
+          const issuedResult = await conn.execute(
+            `
         SELECT
           NVL(SUM(NVL(t.qtyissue, 0)), 0) AS total_issued_qty
         FROM view_issue_engine t
         WHERE ${DASHBOARD_ISSUE_WHERE}
       `,
-        [],
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
-      issuedTotal = toNumber(issuedResult.rows?.[0]?.TOTAL_ISSUED_QTY);
-    } catch (err) {
-      console.warn("[getDashboardMetrics] issue summary failed:", err.message || err);
-    }
+            [],
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+          );
+          issuedTotal = toNumber(issuedResult.rows?.[0]?.TOTAL_ISSUED_QTY);
+        } catch (err) {
+          console.warn("[getDashboardMetrics] issue summary failed:", err.message || err);
+        }
 
-    let outOfStockCount = 0;
-    try {
-      const stockResult = await conn.execute(
-        `
+        let outOfStockCount = 0;
+        try {
+          const stockResult = await conn.execute(
+            `
         SELECT
           COUNT(*) AS out_of_stock_count
         FROM view_item_stock_engine t
         WHERE ${DASHBOARD_STOCK_WHERE}
       `,
-        [],
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
-      outOfStockCount = toNumber(stockResult.rows?.[0]?.OUT_OF_STOCK_COUNT);
-    } catch (err) {
-      console.warn("[getDashboardMetrics] stock summary failed:", err.message || err);
-    }
+            [],
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+          );
+          outOfStockCount = toNumber(stockResult.rows?.[0]?.OUT_OF_STOCK_COUNT);
+        } catch (err) {
+          console.warn("[getDashboardMetrics] stock summary failed:", err.message || err);
+        }
 
-    const topItemsResult = await conn.execute(
-      `
+        const topItemsResult = await conn.execute(
+          `
       SELECT *
       FROM (
         SELECT
@@ -246,12 +257,12 @@ export async function getDashboardMetrics() {
       )
       WHERE ROWNUM <= 10
     `,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
+          [],
+          { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
 
-    const topVendorsResult = await conn.execute(
-      `
+        const topVendorsResult = await conn.execute(
+          `
       SELECT *
       FROM (
         SELECT
@@ -265,49 +276,49 @@ export async function getDashboardMetrics() {
       )
       WHERE ROWNUM <= 10
     `,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
+          [],
+          { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
 
-    const purchaseRow = purchaseSummary.rows?.[0] ?? {};
+        const purchaseRow = purchaseSummary.rows?.[0] ?? {};
 
-    const metrics = {
-      // Status-based metrics (like housekeeping dashboard)
-      totalIndents: totalIndents,
-      completedIndents: completedIndents,
-      pendingIndents: pendingIndents,
-      upcomingIndents: upcomingIndents,
-      overdueIndents: overdueIndents,
-      
-      // Overall progress percentages
-      overallProgress: Math.round(overallProgress * 10) / 10,
-      completedPercent: Math.round(completedPercent * 10) / 10,
-      pendingPercent: Math.round(pendingPercent * 10) / 10,
-      upcomingPercent: Math.round(upcomingPercent * 10) / 10,
-      overduePercent: Math.round(overduePercent * 10) / 10,
-      
-      // Quantity metrics
-      totalIndentedQuantity: toNumber(statusData.TOTAL_INDENTED_QTY || 0),
-      totalPurchaseOrders: toNumber(purchaseRow.TOTAL_PURCHASE_ORDERS),
-      totalPurchasedQuantity: toNumber(purchaseRow.TOTAL_PURCHASED_QTY),
-      totalIssuedQuantity: issuedTotal,
-      outOfStockCount,
-      topPurchasedItems: (topItemsResult.rows ?? []).map((row) => ({
-        itemName: row.ITEM_NAME,
-        orderCount: toNumber(row.ORDER_COUNT),
-        totalOrderQty: toNumber(row.TOTAL_ORDER_QTY),
-      })),
-      topVendors: (topVendorsResult.rows ?? []).map((row) => ({
-        vendorName: row.VENDOR_NAME,
-        uniquePoCount: toNumber(row.UNIQUE_PO_COUNT),
-        totalItems: toNumber(row.TOTAL_ITEMS),
-      })),
-    };
+        const metrics = {
+          // Status-based metrics (like housekeeping dashboard)
+          totalIndents: totalIndents,
+          completedIndents: completedIndents,
+          pendingIndents: pendingIndents,
+          upcomingIndents: upcomingIndents,
+          overdueIndents: overdueIndents,
 
-      return metrics;
-    } finally {
-      await conn.close();
-    }
+          // Overall progress percentages
+          overallProgress: Math.round(overallProgress * 10) / 10,
+          completedPercent: Math.round(completedPercent * 10) / 10,
+          pendingPercent: Math.round(pendingPercent * 10) / 10,
+          upcomingPercent: Math.round(upcomingPercent * 10) / 10,
+          overduePercent: Math.round(overduePercent * 10) / 10,
+
+          // Quantity metrics
+          totalIndentedQuantity: toNumber(statusData.TOTAL_INDENTED_QTY || 0),
+          totalPurchaseOrders: toNumber(purchaseRow.TOTAL_PURCHASE_ORDERS),
+          totalPurchasedQuantity: toNumber(purchaseRow.TOTAL_PURCHASED_QTY),
+          totalIssuedQuantity: issuedTotal,
+          outOfStockCount,
+          topPurchasedItems: (topItemsResult.rows ?? []).map((row) => ({
+            itemName: row.ITEM_NAME,
+            orderCount: toNumber(row.ORDER_COUNT),
+            totalOrderQty: toNumber(row.TOTAL_ORDER_QTY),
+          })),
+          topVendors: (topVendorsResult.rows ?? []).map((row) => ({
+            vendorName: row.VENDOR_NAME,
+            uniquePoCount: toNumber(row.UNIQUE_PO_COUNT),
+            totalItems: toNumber(row.TOTAL_ITEMS),
+          })),
+        };
+
+        return metrics;
+      } finally {
+        await conn.close();
+      }
     },
     DEFAULT_TTL.DASHBOARD
   );

@@ -35,7 +35,7 @@ export async function getPoPending() {
         AND t.series = 'U3'
         AND NVL(t.qtycancelled, 0) = 0
         AND NVL(t.qtyexecute, 0) < NVL(t.qtyorder, 0)
-      ORDER BY t.vrdate ASC, t.vrno ASC
+      ORDER BY t.vrdate DESC, t.vrno DESC
         `;
 
         const result = await conn.execute(sql, [], {

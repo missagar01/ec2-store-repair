@@ -21,11 +21,20 @@ const pendingIndentDownloadColumns = [
 ];
 
 const historyIndentDownloadColumns = [
-  ...pendingIndentDownloadColumns,
-  { header: "PO Number", key: "PO_NO", width: 18 },
-  { header: "PO Qty", key: "PO_QTY", width: 14 },
-  { header: "Cancelled Date", key: "CANCELLEDDATE", width: 20 },
-  { header: "Cancelled Remark", key: "CANCELLED_REMARK", width: 28 },
+  { header: "Indent No", key: "INDENT_NO", width: 16 },
+  { header: "Indent Date", key: "INDENT_DATE", width: 14 },
+  { header: "Indenter", key: "INDENTER", width: 20 },
+  { header: "Division", key: "DIVISION", width: 18 },
+  { header: "Department", key: "DEPARTMENT", width: 18 },
+  { header: "Item Code", key: "ITEM_CODE", width: 15 },
+  { header: "Item Name", key: "ITEM_NAME", width: 28 },
+  { header: "Qty Indent", key: "QTYINDENT", width: 15 },
+  { header: "UOM", key: "UM", width: 10 },
+  { header: "Acknowledge Date", key: "ACKNOWLEDGEDATE", width: 20 },
+  { header: "Purchaser", key: "PURCHASER", width: 20 },
+  { header: "PO Number", key: "PO_NUMBER", width: 25 },
+  { header: "GRN No", key: "GRN_NO", width: 25 },
+  { header: "GRN Date", key: "GRN_DATE", width: 25 },
 ];
 
 function buildIndentFilename(type) {
