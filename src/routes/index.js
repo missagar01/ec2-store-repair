@@ -21,6 +21,8 @@ import repairFollowupRoutes from "./repairFollowup.routes.js";
 import settingsRoutes from "./settings.routes.js";
 import storeGRNRoutes from "./storeGRN.routes.js";
 import storeGRNApproval from "./storeGRNApproval.routes.js";
+import grnAndpoRoutes from "./grnAndpo.routes.js";
+import storeIssueRoutes from "./storeIssue.routes.js";
 
 const router = Router();
 
@@ -45,6 +47,8 @@ router.use("/repair-followup", repairFollowupRoutes);
 router.use("/settings", settingsRoutes);
 router.use("/store-grn", storeGRNRoutes);
 router.use("/store-grn-approval", storeGRNApproval);
+router.use("/grn-and-po", grnAndpoRoutes);
+router.use("/store-issue", storeIssueRoutes);
 
 export default router;
 

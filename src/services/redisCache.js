@@ -12,6 +12,7 @@ const DEFAULT_TTL = {
   UOM: 3600, // 1 hour (rarely changes)
   AUTH: 300, // 5 minutes (user data cache)
   COST_LOCATION: 1800, // 30 minutes (cost locations don't change often)
+  STORE_ISSUE: 300, // 5 minutes
 };
 
 /**
@@ -66,7 +67,7 @@ export async function setCache(key, data, ttlSeconds = null) {
     }
 
     const serialized = JSON.stringify(data);
-    
+
     if (ttlSeconds) {
       await redisClient.setEx(key, ttlSeconds, serialized);
     } else {
@@ -100,7 +101,7 @@ export async function deleteCache(key) {
       })) {
         keys.push(key);
       }
-      
+
       if (keys.length > 0) {
         return await redisClient.del(keys);
       }
@@ -148,29 +149,32 @@ export async function getOrSetCache(key, fetchFn, ttlSeconds = null) {
 export const cacheKeys = {
   // Stock service
   stock: (fromDate, toDate) => `stock:${fromDate}|${toDate}`,
-  
+
   // PO service
   poPending: () => "po:pending",
   poHistory: () => "po:history",
-  
+
   // Store Indent service
   indentPending: () => "indent:pending",
   indentHistory: () => "indent:history",
   indentDashboard: () => "indent:dashboard",
-  
+
   // Repair Gate Pass service
   gatePassPending: () => "gatepass:pending",
   gatePassReceived: () => "gatepass:received",
   gatePassCounts: () => "gatepass:counts",
-  
+
   // UOM service
   uomItems: () => "uom:items",
-  
+
   // Auth service
   authUser: (userName, employeeId) => `auth:user:${userName || ''}:${employeeId || ''}`,
-  
+
   // Cost Location service
   costLocation: (divCode) => `costlocation:${divCode || 'SM'}`,
+
+  // Store Issue service
+  storeIssue: () => "storeissue:all",
 };
 
 /**
