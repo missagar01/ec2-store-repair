@@ -126,6 +126,7 @@ export async function getRepairGatePassCounts() {
           FROM view_itemtran_engine t
           WHERE t.entity_code = 'SR'
             AND SUBSTR(t.vrno, 1, 2) = 'P3'
+            AND t.qty1 is null
             AND t.vrno NOT IN (
               SELECT t.ref1_vrno
               FROM view_itemtran_engine t

@@ -208,6 +208,20 @@ export async function getDashboardMetrics() {
           { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
 
+        const poPendingResult = await conn.execute(
+          `
+          SELECT COUNT(*) AS count
+          FROM view_order_engine t
+          WHERE t.entity_code = 'SR'
+            AND t.series = 'U3'
+            AND NVL(t.qtycancelled, 0) = 0
+            AND NVL(t.qtyexecute, 0) < NVL(t.qtyorder, 0)
+          `,
+          [],
+          { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+        const pendingPurchaseOrders = toNumber(poPendingResult.rows?.[0]?.COUNT || poPendingResult.rows?.[0]?.count);
+
         let issuedTotal = 0;
         try {
           const issuedResult = await conn.execute(
@@ -289,6 +303,7 @@ export async function getDashboardMetrics() {
           pendingIndents: pendingIndents,
           upcomingIndents: upcomingIndents,
           overdueIndents: overdueIndents,
+          pendingPurchaseOrders: pendingPurchaseOrders,
 
           // Overall progress percentages
           overallProgress: Math.round(overallProgress * 10) / 10,
