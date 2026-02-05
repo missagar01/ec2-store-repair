@@ -23,6 +23,7 @@ import storeGRNRoutes from "./storeGRN.routes.js";
 import storeGRNApproval from "./storeGRNApproval.routes.js";
 import grnAndpoRoutes from "./grnAndpo.routes.js";
 import storeIssueRoutes from "./storeIssue.routes.js";
+import returnableRoutes from "./returnable.routes.js";
 
 const router = Router();
 
@@ -49,6 +50,7 @@ router.use("/store-grn", storeGRNRoutes);
 router.use("/store-grn-approval", storeGRNApproval);
 router.use("/grn-and-po", grnAndpoRoutes);
 router.use("/store-issue", storeIssueRoutes);
+router.use("/returnable", returnableRoutes);
 
 export default router;
 
