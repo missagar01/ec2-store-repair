@@ -1,4 +1,6 @@
 import { withPgTransaction, withPgClient } from "../config/postgres.js";
+import { getHODByDepartment } from "./department.service.js";
+import { sendWhatsApp } from "../utils/whatsapp.js";
 
 const VALID_FORM_TYPES = new Set(["INDENT", "REQUISITION"]);
 const VALID_STATUSES = new Set(["PENDING", "APPROVED", "REJECTED", "CANCELLED"]);
@@ -189,7 +191,35 @@ export async function createIndent(formPayload) {
     ];
 
     const { rows } = await client.query(insertSql, values);
-    return rows[0];
+    const createdRecord = rows[0];
+
+    // Trigger WhatsApp Notification asynchronously
+    if (createdRecord) {
+      (async () => {
+        try {
+          const hodInfo = await getHODByDepartment(createdRecord.department);
+          if (hodInfo && hodInfo.mobile_number) {
+            const msg = `🔔 *New ${createdRecord.form_type} Received*\n\n` +
+              `*Request No:* ${createdRecord.request_number}\n` +
+              `*Requester:* ${createdRecord.requester_name}\n` +
+              `*Department:* ${createdRecord.department}\n` +
+              `*Item:* ${createdRecord.product_name}\n` +
+              `*Quantity:* ${createdRecord.request_qty} ${createdRecord.uom || ''}\n` +
+              `*Purpose:* ${createdRecord.purpose || 'N/A'}\n\n` +
+              `Please review and approve.`;
+
+            await sendWhatsApp(hodInfo.mobile_number, msg);
+            console.log(`[indent.service.js] WhatsApp sent to HOD of ${createdRecord.department}`);
+          } else {
+            console.warn(`[indent.service.js] No HOD/Mobile found for dept: ${createdRecord.department}`);
+          }
+        } catch (waErr) {
+          console.error("[indent.service.js] Failed to send WhatsApp:", waErr);
+        }
+      })();
+    }
+
+    return createdRecord;
   });
 }
 
@@ -314,6 +344,16 @@ async function applyUpdateToRow(client, existing, updates) {
     }
     values.push(qty);
     setClauses.push(`approved_quantity = $${paramIndex++}`);
+  }
+
+  const gmApprovalRaw = updates.gm_approval ?? updates.gmApproval;
+  if (gmApprovalRaw) {
+    const candidate = String(gmApprovalRaw).toUpperCase();
+    if (!VALID_STATUSES.has(candidate)) {
+      throw new Error("Invalid gm_approval status");
+    }
+    values.push(candidate);
+    setClauses.push(`gm_approval = $${paramIndex++}`);
   }
 
   const explicitActual1 = normalizeTimestamp(updates.actual_1 ?? updates.actual1);

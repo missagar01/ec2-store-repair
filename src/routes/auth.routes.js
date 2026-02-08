@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { login } from '../controllers/auth.controller.js';
+import { login, getHODInfo } from '../controllers/auth.controller.js';
 
 const router = Router();
 
@@ -9,6 +9,7 @@ const router = Router();
  * @access  Public
  */
 router.post('/login', login);
+router.get('/hod/:department', getHODInfo);
 
 export default router;
 

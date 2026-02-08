@@ -1,4 +1,5 @@
 import * as authService from '../services/auth.service.js';
+import * as departmentService from '../services/department.service.js';
 
 /**
  * Handles user login requests.
@@ -19,6 +20,23 @@ export async function login(req, res) {
     res.status(200).json({ success: true, token: result.token, user: result.user });
   } else {
     res.status(401).json({ success: false, message: result.message });
+  }
+}
+
+/**
+ * Fetches HOD info for a department
+ */
+export async function getHODInfo(req, res) {
+  const { department } = req.params;
+  try {
+    const hod = await departmentService.getHODByDepartment(department);
+    if (!hod) {
+      return res.status(404).json({ success: false, message: 'HOD not found for this department' });
+    }
+    return res.json({ success: true, data: hod });
+  } catch (error) {
+    console.error("getHODInfo error:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 }
 
