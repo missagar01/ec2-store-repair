@@ -185,7 +185,7 @@ export async function createIndent(formPayload) {
       formPayload.cost_location ?? formPayload.costLocation ?? null,
       formPayload.group_name ?? formPayload.groupName ?? null,
       planned1,
-      "PENDING",
+      formPayload.request_status ?? formPayload.requestStatus ?? "PENDING",
       createdAt,
       createdAt,
     ];
@@ -540,7 +540,7 @@ export async function fetchIndentByRequestNumber(requestNumber) {
 }
 
 
-export async function updateIndentNumberService(requestNumber, indentNumber) {
+export async function updateIndentNumberService(requestNumber, indentNumber, actual1 = null) {
   if (!requestNumber) {
     throw new Error("requestNumber is required");
   }
@@ -565,16 +565,26 @@ export async function updateIndentNumberService(requestNumber, indentNumber) {
       throw new Error(`Indent with request_number ${requestNumber} not found`);
     }
 
-    // Update only indent_number
+    const setClauses = ["indent_number = $1", "updated_at = NOW()"];
+    const values = [indentNumber];
+    
+    if (actual1) {
+      setClauses.push(`actual_1 = $${values.length + 1}::timestamptz`);
+      values.push(actual1);
+    }
+
+    values.push(requestNumber);
+    const whereClause = `WHERE request_number = $${values.length}`;
+
+    // Update indent_number and optional actual_1
     const { rows } = await client.query(
       `
         UPDATE indent
-        SET indent_number = $1,
-            updated_at = NOW()
-        WHERE request_number = $2
+        SET ${setClauses.join(", ")}
+        ${whereClause}
         RETURNING *
       `,
-      [indentNumber, requestNumber]
+      values
     );
 
     return rows;

@@ -33,7 +33,7 @@ export async function loginUser(user_name, employee_id, password) {
           // IMPORTANT: The SQL query should find the user by identifier first,
           // then the password comparison happens in JavaScript.
           let queryText = `
-            SELECT id, user_name, employee_id, password, role, user_access, department , store_access
+            SELECT id, user_name, employee_id, password, role, user_access, department , store_access, store_role_access
             FROM users
             WHERE 1=1 -- Always true, makes appending AND clauses easier
           `;
@@ -96,6 +96,7 @@ export async function loginUser(user_name, employee_id, password) {
         user_name: user.user_name,
         employee_id: user.employee_id,
         role: user.role, // Include user role in the token payload
+        store_role_access: user.store_role_access,
       },
       JWT_SECRET,
       { expiresIn: '30d' } // Token expires in 30 days
@@ -113,6 +114,7 @@ export async function loginUser(user_name, employee_id, password) {
         user_access: user.user_access || user.department || null,
         department: user.department || user.user_access || null,
         store_access: user.store_access || null,
+        store_role_access: user.store_role_access || null,
       },
     };
   } catch (error) {

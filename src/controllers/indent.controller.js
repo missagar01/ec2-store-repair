@@ -197,7 +197,7 @@ export async function updateIndentNumber(req, res) {
   const requestNumber = req.params.requestNumber;
 
   try {
-    const { indent_number } = req.body;
+    const { indent_number, actual_1 } = req.body;
 
     if (!indent_number || typeof indent_number !== "string") {
       return res.status(400).json({
@@ -208,7 +208,8 @@ export async function updateIndentNumber(req, res) {
 
     const record = await updateIndentNumberService(
       requestNumber,
-      indent_number.trim()
+      indent_number.trim(),
+      actual_1
     );
 
     return res.json({
