@@ -5,27 +5,23 @@ import { getOrSetCache, cacheKeys, DEFAULT_TTL } from "./redisCache.js";
 
 export async function getCostLocationsService(divCode = null) {
   try {
-    // Default to SM if no divCode provided
-    const divisionCode = divCode || 'SM';
-    const cacheKey = `costlocation:${divisionCode}`;
+    const cacheKey = divCode ? `costlocation:${divCode}` : 'costlocation:ALL';
 
     const result = await getOrSetCache(
       cacheKey,
       async () => {
         const conn = await getConnection();
         try {
-          // Build query based on division code (SM, RP, PM, or CO)
-          // Query format: WHERE ENTITY_CODE = 'SR' AND (DIV_CODE IS NULL OR DIV_CODE = :divCode)
-          // Supports: SM, RP, PM, CO divisions
+          // If no divCode, fetch all cost locations for ENTITY_CODE = 'SR'
           const sql = `
             SELECT DISTINCT t.COST_NAME
             FROM view_cost_mast t
             WHERE t.ENTITY_CODE = 'SR'
-              AND (t.DIV_CODE IS NULL OR t.DIV_CODE = :divCode)
+              ${divCode ? 'AND (t.DIV_CODE IS NULL OR t.DIV_CODE = :divCode)' : ''}
             ORDER BY t.COST_NAME
           `;
 
-          const binds = { divCode: divisionCode };
+          const binds = divCode ? { divCode } : {};
 
           const result = await conn.execute(sql, binds, {
             outFormat: oracledb.OUT_FORMAT_OBJECT,
