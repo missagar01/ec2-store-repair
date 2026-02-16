@@ -25,6 +25,7 @@ import grnAndpoRoutes from "./grnAndpo.routes.js";
 import storeIssueRoutes from "./storeIssue.routes.js";
 import returnableRoutes from "./returnable.routes.js";
 import departmentRoutes from "./department.routes.js";
+import erpIndentRoutes from "./erpIndent.routes.js";
 
 const router = Router();
 
@@ -53,6 +54,7 @@ router.use("/grn-and-po", grnAndpoRoutes);
 router.use("/store-issue", storeIssueRoutes);
 router.use("/returnable", returnableRoutes);
 router.use("/departments", departmentRoutes);
+router.use("/erp-indent", erpIndentRoutes);
 
 export default router;
 
