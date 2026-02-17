@@ -15,9 +15,9 @@ export async function getUserErpIndents(employeeId) {
         SELECT  t.vrno AS indent_no,
                 t.vrdate AS indent_date,
                 (select a.passport_no from emp_mast a where a.emp_code = (select b.createdby from indent_head b where b.vrno = t.vrno )) as employee_id,
-                lhs_utility.get_name('emp_code',(select b.createdby from indent_head b where b.vrno = t.vrno )) as indenter,
+                upper(lhs_utility.get_name('emp_code',(select b.createdby from indent_head b where b.vrno = t.vrno ))) as indenter,
                 lhs_utility.get_name('div_code',  t.div_code)  AS division,
-                lhs_utility.get_name('dept_code', t.dept_code) AS department,
+                upper(lhs_utility.get_name('dept_code', t.dept_code)) AS department,
                 t.item_code,
                 t.item_name,
                 t.qtyindent,
@@ -45,11 +45,36 @@ export async function getUserErpIndents(employeeId) {
                   FROM view_itemtran_engine b
                   WHERE b.indent_vrno = t.vrno
                     AND b.item_code   = t.item_code
-                ) AS grn_date
+                ) AS grn_date,
+
+                -- Issue numbers (comma separated)
+                ( SELECT LISTAGG(b.vrno, ', ') WITHIN GROUP (ORDER BY b.vrno)
+                  FROM view_itemtran_engine b
+                  WHERE b.indent_vrno1 = t.vrno
+                    AND b.item_code   = t.item_code
+                    AND b.tcode = 'Q'
+                ) AS issue_no,
+
+                -- Issue dates (comma separated)
+                ( SELECT LISTAGG(TO_CHAR(b.vrdate, 'DD-MON-YYYY'), ', ')
+                         WITHIN GROUP (ORDER BY b.vrdate)
+                  FROM view_itemtran_engine b
+                  WHERE b.indent_vrno1 = t.vrno
+                    AND b.item_code   = t.item_code
+                    AND b.tcode = 'Q'
+                ) AS issue_date,
+
+                -- Receiver (comma separated)
+                ( SELECT LISTAGG(b.irfield1, ', ') WITHIN GROUP (ORDER BY b.irfield1)
+                  FROM view_itemtran_engine b
+                  WHERE b.indent_vrno1 = t.vrno
+                    AND b.item_code   = t.item_code
+                    AND b.tcode = 'Q'
+                ) AS receiver
 
         FROM view_indent_engine t
         WHERE t.entity_code = 'SR'
-              AND trunc(t.vrdate,'MM') = trunc(sysdate, 'MM')
+              and trunc(t.vrdate,'MM') = trunc(sysdate, 'MM')
       ) WHERE employee_id = :employeeId
       ORDER BY indent_date ASC, indent_no ASC
     `;
