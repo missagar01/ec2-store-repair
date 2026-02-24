@@ -69,7 +69,7 @@ export async function getPending() {
             lhs_utility.get_name('user_code',t.acknowledgeby) as purchaser,
             t.vrno AS indent_number,
             t.vrdate AS indent_date,
-            t.indent_remark AS indenter_name,
+            upper(lhs_utility.get_name('emp_code',(select b.createdby from indent_head b where b.vrno = t.vrno ))) as indenter_name,
             lhs_utility.get_name('div_code', t.div_code) AS division,
             UPPER(lhs_utility.get_name('dept_code', t.dept_code)) AS department,
             UPPER(t.item_name) AS item_name,
@@ -109,7 +109,7 @@ export async function getHistory() {
         const sql = `
         SELECT  t.vrno AS indent_no,
                 t.vrdate AS indent_date,
-                t.indent_remark AS indenter,
+                upper(lhs_utility.get_name('emp_code',(select b.createdby from indent_head b where b.vrno = t.vrno ))) as indenter,
                 lhs_utility.get_name('div_code',  t.div_code)  AS division,
                 lhs_utility.get_name('dept_code', t.dept_code) AS department,
                 t.item_code,
