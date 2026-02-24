@@ -27,11 +27,10 @@ export async function createSendedBill(data) {
       grn_date,
       party_name,
       party_bill_no,
-      party_bill_amount,
       sended_bill,
       approved_by_admin
     )
-    VALUES ($1, $2, $3, $4, $5, $6, TRUE, TRUE)
+    VALUES ($1, $2, $3, $4, $5, TRUE, TRUE)
     ON CONFLICT (grn_no)
     DO UPDATE SET
       sended_bill = TRUE,
@@ -45,7 +44,6 @@ export async function createSendedBill(data) {
     data.grn_date || null,
     data.party_name || null,
     data.party_bill_no || null,
-    data.party_bill_amount || null,
   ];
 
   const { rows } = await pool.query(query, values);
@@ -64,7 +62,6 @@ export async function getAllStoreGRN() {
       grn_date,
       party_name,
       party_bill_no,
-      party_bill_amount,
       sended_bill,
       approved_by_admin,
       approved_by_gm,

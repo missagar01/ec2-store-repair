@@ -65,6 +65,8 @@ export async function getPending() {
         const sql = `
           SELECT
             t.lastupdate + INTERVAL '3' DAY AS plannedtimestamp,
+            t.acknowledgedate,  
+            lhs_utility.get_name('user_code',t.acknowledgeby) as purchaser,
             t.vrno AS indent_number,
             t.vrdate AS indent_date,
             t.indent_remark AS indenter_name,
