@@ -356,23 +356,20 @@ async function applyUpdateToRow(client, existing, updates) {
     setClauses.push(`gm_approval = $${paramIndex++}`);
   }
 
-  const explicitActual1 = normalizeTimestamp(updates.actual_1 ?? updates.actual1);
-  const shouldAutofillActual1 =
-    !explicitActual1 &&
-    !existing.actual_1 &&
-    nextStatus &&
-    nextStatus !== "PENDING";
-  const actual1Value = explicitActual1 || (shouldAutofillActual1 ? new Date().toISOString() : null);
-
-  let actual1ParamIndex = null;
-  if (actual1Value) {
-    actual1ParamIndex = paramIndex;
-    values.push(actual1Value);
-    setClauses.push(`actual_1 = $${paramIndex}::timestamptz`);
-    paramIndex += 1;
-    setClauses.push(
-      `time_delay_1 = ($${actual1ParamIndex}::timestamptz - COALESCE(planned_1, sample_timestamp))`
-    );
+  const hasActual1 = "actual_1" in updates || "actual1" in updates;
+  if (hasActual1) {
+    const explicitActual1 = normalizeTimestamp(updates.actual_1 ?? updates.actual1);
+    if (explicitActual1) {
+      const actual1ParamIndex = paramIndex;
+      values.push(explicitActual1);
+      setClauses.push(`actual_1 = $${paramIndex}::timestamptz`);
+      paramIndex += 1;
+      setClauses.push(
+        `time_delay_1 = ($${actual1ParamIndex}::timestamptz - COALESCE(planned_1, sample_timestamp))`
+      );
+    } else {
+      setClauses.push(`actual_1 = NULL`);
+    }
   }
 
   if (!setClauses.length) {
@@ -567,7 +564,7 @@ export async function updateIndentNumberService(requestNumber, indentNumber, act
 
     const setClauses = ["indent_number = $1", "updated_at = NOW()"];
     const values = [indentNumber];
-    
+
     if (actual1) {
       setClauses.push(`actual_1 = $${values.length + 1}::timestamptz`);
       values.push(actual1);
