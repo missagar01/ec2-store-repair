@@ -157,3 +157,23 @@ export async function downloadHistoryIndents(req, res) {
       .json({ success: false, error: err.message || "Internal server error" });
   }
 }
+
+export async function getAllVendors(req, res) {
+  try {
+    const data = await storeIndentService.getAllVendors();
+    return res.json({ success: true, data });
+  } catch (err) {
+    console.error("getAllVendors error:", err);
+    return res.status(500).json({ success: false, error: err.message || "Internal server error" });
+  }
+}
+
+export async function getAllProducts(req, res) {
+  try {
+    const data = await storeIndentService.getAllProducts();
+    return res.json({ success: true, data });
+  } catch (err) {
+    console.error("getAllProducts error:", err);
+    return res.status(500).json({ success: false, error: err.message || "Internal server error" });
+  }
+}
