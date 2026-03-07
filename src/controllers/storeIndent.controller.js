@@ -5,6 +5,36 @@ import {
   sendRowsAsExcel,
 } from "../utils/excel.helper.js";
 
+/**
+ * Format a value that could be a JS Date object or an ISO date string
+ * into DD-MM-YYYY format. Returns empty string for null/invalid values.
+ */
+function formatDateCell(value) {
+  if (!value) return "";
+  const d = value instanceof Date ? value : new Date(value);
+  if (isNaN(d.getTime())) return String(value); // fallback: return as-is
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
+/**
+ * Format a Date value (or ISO string) to DD-MM-YYYY HH:MM.
+ * Used for timestamp columns.
+ */
+function formatDateTimeCell(value) {
+  if (!value) return "";
+  const d = value instanceof Date ? value : new Date(value);
+  if (isNaN(d.getTime())) return String(value);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, "0");
+  const mins = String(d.getMinutes()).padStart(2, "0");
+  return `${day}-${month}-${year} ${hours}:${mins}`;
+}
+
 const pendingIndentDownloadColumns = [
   { header: "Planned Timestamp", key: "PLANNEDTIMESTAMP", width: 22 },
   { header: "Indent Number", key: "INDENT_NUMBER", width: 16 },
@@ -126,7 +156,13 @@ export async function getDashboard(req, res) {
 
 export async function downloadPendingIndents(req, res) {
   try {
-    const rows = await storeIndentService.getPending();
+    const rawRows = await storeIndentService.getPending();
+    const rows = rawRows.map((r) => ({
+      ...r,
+      PLANNEDTIMESTAMP: formatDateTimeCell(r.PLANNEDTIMESTAMP),
+      INDENT_DATE: formatDateCell(r.INDENT_DATE),
+      ACKNOWLEDGEDATE: formatDateCell(r.ACKNOWLEDGEDATE),
+    }));
     await sendRowsAsExcel(res, {
       rows,
       columns: pendingIndentDownloadColumns,
@@ -143,7 +179,13 @@ export async function downloadPendingIndents(req, res) {
 
 export async function downloadHistoryIndents(req, res) {
   try {
-    const rows = await storeIndentService.getHistory();
+    const rawRows = await storeIndentService.getHistory();
+    const rows = rawRows.map((r) => ({
+      ...r,
+      INDENT_DATE: formatDateCell(r.INDENT_DATE),
+      ACKNOWLEDGEDATE: formatDateCell(r.ACKNOWLEDGEDATE),
+      GRN_DATE: formatDateCell(r.GRN_DATE),
+    }));
     await sendRowsAsExcel(res, {
       rows,
       columns: historyIndentDownloadColumns,
